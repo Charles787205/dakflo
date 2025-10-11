@@ -24,3 +24,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Defensive defaults for form controls so they remain readable even if a parent uses text-white */
+input, textarea, select {
+  color: #111827; /* text-gray-900 */
+  background-color: #ffffff;
+}
+
+/* Keep form controls black-on-white by default to match design requirement
+   (if you prefer them to adapt to dark mode later, we can change this) */
