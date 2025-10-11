@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { MongoClient, ObjectId } from 'mongodb'
-
-const client = new MongoClient(process.env.MONGO_URI!)
+import { getDb } from '@/lib/mongodb'
+import { ObjectId } from 'mongodb'
 
 export async function GET() {
   try {
-    await client.connect()
-    const db = client.db()
+    const db = await getDb()
     const users = db.collection('users')
 
     // Get all users
@@ -20,8 +18,6 @@ export async function GET() {
       { error: 'Internal server error' },
       { status: 500 }
     )
-  } finally {
-    await client.close()
   }
 }
 
@@ -36,8 +32,7 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    await client.connect()
-    const db = client.db()
+    const db = await getDb()
     const users = db.collection('users')
 
     interface UpdateData {
@@ -108,7 +103,5 @@ export async function PATCH(request: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     )
-  } finally {
-    await client.close()
   }
 }
