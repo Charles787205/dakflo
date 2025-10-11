@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, Suspense } from 'react'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import SidePanel from '@/components/field_collector/sidepanel'
@@ -12,7 +12,7 @@ interface PatientOption {
   type: 'patient' | 'user'
 }
 
-export default function SampleCollectionPage() {
+function SampleCollectionContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [patientId, setPatientId] = useState('')
@@ -243,5 +243,13 @@ export default function SampleCollectionPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SampleCollectionPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>}>
+      <SampleCollectionContent />
+    </Suspense>
   )
 }
