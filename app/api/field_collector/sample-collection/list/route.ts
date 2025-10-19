@@ -12,6 +12,8 @@ export async function GET() {
       .find({})
       .sort({ createdAt: -1 })
       .toArray()
+    
+    console.log("adf", collections);
 
     // Transform the data to match the expected format for the frontend
     const sampleList = collections.map(collection => ({
@@ -25,10 +27,15 @@ export async function GET() {
       })),
       notes: collection.notes,
       uploadedAt: collection.collectionDate,
-      status: collection.status,
+      labStatus: collection.labStatus || 'pending', // Default to pending if not set
+      labComments: collection.labComments,
+      reviewedBy: collection.reviewedBy,
+      reviewedAt: collection.reviewedAt,
+      status: collection.status, // Keep original status field for compatibility
       createdAt: collection.createdAt,
       updatedAt: collection.updatedAt
     }))
+    console.log("sample collection",sampleList)
 
     return NextResponse.json({ 
       samples: sampleList

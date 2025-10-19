@@ -66,6 +66,31 @@ const samplePatients: UIPatient[] = [
   }
 ];
 
+// Helper function to normalize gender values from different formats
+const normalizeGender = (gender: string | null | undefined): 'male' | 'female' | 'other' | null => {
+  if (!gender || typeof gender !== 'string') return null;
+  
+  const normalized = gender.toLowerCase().trim();
+  
+  if (normalized === 'male' || normalized === 'm') return 'male';
+  if (normalized === 'female' || normalized === 'f') return 'female';
+  if (normalized === 'other' || normalized === 'o') return 'other';
+  
+  return null;
+};
+
+// Helper function to format gender for display
+const formatGender = (gender: 'male' | 'female' | 'other' | null | undefined): string => {
+  if (!gender) return 'Not specified';
+  
+  switch (gender) {
+    case 'male': return 'Male';
+    case 'female': return 'Female'; 
+    case 'other': return 'Other';
+    default: return 'Not specified';
+  }
+};
+
 const PatientsPage = () => {
   const [patients, setPatients] = React.useState<UIPatient[]>(samplePatients);
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -113,7 +138,7 @@ const PatientsPage = () => {
         lastName: p.lastName || '',
         age: typeof p.age === 'number' ? p.age : (typeof p.ageInYears === 'number' ? p.ageInYears : null),
         dateOfBirth: p.dateOfBirth || null,
-        gender: (p.gender === 'male' || p.gender === 'female' || p.gender === 'other') ? p.gender : null,
+        gender: normalizeGender(p.gender),
         civilStatus: (p.civilStatus === 'single' || p.civilStatus === 'married' || p.civilStatus === 'divorced' || p.civilStatus === 'widowed' || p.civilStatus === 'separated') ? p.civilStatus : null,
         phoneNumber: p.phoneNumber || p.contact || p.phone || null,
         address: p.address || null,
@@ -316,7 +341,7 @@ const PatientsPage = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {patient.age ? `${patient.age} years` : 'N/A'} • {patient.gender || 'N/A'}
+                          {patient.age ? `${patient.age} years` : 'Age not specified'} • {formatGender(patient.gender)}
                           {patient.civilStatus && (
                             <div className="text-xs text-gray-500 capitalize">
                               {patient.civilStatus}

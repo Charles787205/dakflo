@@ -11,7 +11,8 @@ export default withAuth(
       field_collector: ['/field_collector'],
       lab_tech: ['/lab_tech'],
       admin: ['/admin'],
-      ext_expert: ['/ext_expert']
+      ext_expert: ['/ext_expert'],
+      patient: ['/patient']
     }
 
     // Check if user is accessing a role-specific route
@@ -20,8 +21,13 @@ export default withAuth(
         if (pathname.startsWith(route)) {
           if (token?.role !== role) {
             // Redirect to appropriate dashboard based on user's role
+            const redirectPath = token?.role === 'patient' ? '/patient' : 
+                               token?.role === 'field_collector' ? '/field_collector' :
+                               token?.role === 'admin' ? '/admin' :
+                               token?.role === 'ext_expert' ? '/ext_expert' :
+                               '/lab_tech/dashboard'
             return NextResponse.redirect(
-              new URL(`/${token?.role || 'lab_tech/dashboard'}`, req.url)
+              new URL(redirectPath, req.url)
             )
           }
         }
@@ -42,6 +48,8 @@ export const config = {
     '/field_collector/:path*',
     '/lab_tech/:path*',
     '/admin/:path*',
-    '/ext_expert/:path*'
+    '/ext_expert/:path*',
+    '/patient/:path*',
+    '/profile'
   ]
 }

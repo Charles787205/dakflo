@@ -3,9 +3,23 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 
 const LabTechSidebar = () => {
   const pathname = usePathname();
+
+  const handleLogout = async () => {
+    try {
+      await signOut({ 
+        callbackUrl: '/',
+        redirect: true 
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback to manual redirect if signOut fails
+      window.location.href = '/';
+    }
+  };
 
   const navigation = [
     {
@@ -118,7 +132,10 @@ const LabTechSidebar = () => {
         </div>
         
         {/* Logout */}
-        <button className="mt-3 w-full flex items-center justify-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors">
+        <button 
+          onClick={handleLogout}
+          className="mt-3 w-full flex items-center justify-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+        >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>

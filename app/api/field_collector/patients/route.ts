@@ -43,7 +43,31 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json()
-    const { firstName, lastName, middleName, suffix, phoneNumber, email, address } = payload
+    const { 
+      firstName, 
+      lastName, 
+      middleName, 
+      suffix,
+      age,
+      gender,
+      dateOfBirth,
+      phoneNumber, 
+      alternatePhone,
+      email, 
+      address,
+      barangay,
+      municipality,
+      province,
+      emergencyContactName,
+      emergencyContactPhone,
+      emergencyContactRelation,
+      medicalHistory,
+      allergies,
+      currentMedications,
+      symptoms,
+      referringPhysician,
+      notes
+    } = payload
 
     if (!firstName || !lastName) {
       return NextResponse.json({ error: 'firstName and lastName are required' }, { status: 400 })
@@ -51,16 +75,32 @@ export async function POST(request: NextRequest) {
 
     const db = await getDb()
 
-    // Insert patient record
+    // Insert patient record with all collected fields
     const patients = db.collection('patients')
     const patientDoc = {
       firstName,
       middleName: middleName || null,
       lastName,
       suffix: suffix || null,
+      age: age ? parseInt(age) : null,
+      gender: gender || null,
+      dateOfBirth: dateOfBirth || null,
       phoneNumber: phoneNumber || null,
+      alternatePhone: alternatePhone || null,
       email: email || null,
       address: address || null,
+      barangay: barangay || null,
+      municipality: municipality || null,
+      province: province || null,
+      emergencyContactName: emergencyContactName || null,
+      emergencyContactPhone: emergencyContactPhone || null,
+      emergencyContactRelation: emergencyContactRelation || null,
+      medicalHistory: medicalHistory || null,
+      allergies: allergies || null,
+      currentMedications: currentMedications || null,
+      symptoms: symptoms || null,
+      referringPhysician: referringPhysician || null,
+      notes: notes || null,
       createdAt: new Date(),
       updatedAt: new Date()
     }

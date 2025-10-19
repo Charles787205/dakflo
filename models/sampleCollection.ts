@@ -17,6 +17,10 @@ export interface SampleCollection {
   collectedBy?: string // Field collector username/id
   collectionDate: Date
   status: 'pending' | 'processing' | 'completed' | 'rejected'
+  labStatus?: 'pending' | 'approved' | 'rejected' // Lab review status
+  labComments?: string // Lab technician comments
+  reviewedBy?: string // Lab technician who reviewed
+  reviewedAt?: Date // When the lab review was completed
   createdAt: Date
   updatedAt: Date
 }
@@ -30,4 +34,8 @@ export interface NewSampleCollection {
   collectedBy?: string
   collectionDate: Date
   status: 'pending' | 'processing' | 'completed' | 'rejected'
+  labStatus?: 'pending' | 'approved' | 'rejected'
+  labComments?: string
+  reviewedBy?: string
+  reviewedAt?: Date
 }

@@ -25,23 +25,23 @@ interface Sample {
   reviewedAt?: string
 }
 
-export default function LabTechDashboard() {
+export default function FieldCollectionsPage() {
   const [samples, setSamples] = useState<Sample[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
   
-  // Review modal state
-  const [showReviewModal, setShowReviewModal] = useState(false)
+  // Image modal state
+  const [showImageModal, setShowImageModal] = useState(false)
   const [selectedSample, setSelectedSample] = useState<Sample | null>(null)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showReviewForm, setShowReviewForm] = useState(false)
+  
+  // Review state
   const [reviewAction, setReviewAction] = useState<'approve' | 'reject'>('approve')
   const [reviewComments, setReviewComments] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
-  
-  // Image modal state
-  const [showImageModal, setShowImageModal] = useState(false)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isFullscreen, setIsFullscreen] = useState(false)
 
   const fetchSamples = useCallback(async () => {
     try {
@@ -77,66 +77,6 @@ export default function LabTechDashboard() {
     return (sample.labStatus || 'pending') === filterStatus
   })
 
-  const handleReview = (sample: Sample, action: 'approve' | 'reject') => {
-    setSelectedSample(sample)
-    setReviewAction(action)
-    setReviewComments('')
-    setShowReviewModal(true)
-  }
-
-  const submitReview = async () => {
-    if (!selectedSample) return
-    if (reviewAction === 'reject' && !reviewComments.trim()) return
-
-    try {
-      setSubmittingReview(true)
-      
-      // Call the API endpoint to submit review
-      const response = await fetch('/api/lab_tech/review-sample', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sampleId: selectedSample._id,
-          status: reviewAction,
-          comments: reviewComments
-        })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to submit review')
-      }
-
-      const result = await response.json()
-      
-      // Update local state with the result
-      const updatedSamples = samples.map(sample => 
-        sample._id === selectedSample._id 
-          ? {
-              ...sample,
-              labStatus: (reviewAction === 'approve' ? 'approved' : 'rejected') as 'approved' | 'rejected',
-              labComments: reviewComments,
-              reviewedAt: result.data.reviewedAt,
-              reviewedBy: result.data.reviewedBy
-            }
-          : sample
-      )
-      
-      setSamples(updatedSamples)
-      setShowReviewModal(false)
-      setSelectedSample(null)
-      setReviewComments('')
-      
-    } catch (error) {
-      console.error('Error submitting review:', error)
-      setError(error instanceof Error ? error.message : 'Failed to submit review')
-    } finally {
-      setSubmittingReview(false)
-    }
-  }
-
   const handleViewImages = (sample: Sample) => {
     setSelectedSample(sample)
     setCurrentImageIndex(0)
@@ -146,6 +86,8 @@ export default function LabTechDashboard() {
 
   const closeImageModal = () => {
     setShowImageModal(false)
+    setShowReviewForm(false)
+    setReviewComments('')
     setSelectedSample(null)
     setCurrentImageIndex(0)
     setIsFullscreen(false)
@@ -198,8 +140,8 @@ export default function LabTechDashboard() {
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Lab Tech Dashboard</h1>
-              <p className="text-gray-600">Review and approve field collection samples</p>
+              <h1 className="text-2xl font-bold text-gray-900">Field Collections</h1>
+              <p className="text-gray-600">Browse and review all field collection samples</p>
             </div>
             <button
               onClick={fetchSamples}
@@ -225,7 +167,7 @@ export default function LabTechDashboard() {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Samples</p>
+                  <p className="text-sm font-medium text-gray-600">Total Collections</p>
                   <p className="text-2xl font-semibold text-gray-900">{samples.length}</p>
                 </div>
               </div>
@@ -297,7 +239,7 @@ export default function LabTechDashboard() {
             </div>
           </div>
 
-          {/* Samples Table */}
+          {/* Collections Table */}
           {error ? (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-red-800">{error}</p>
@@ -311,8 +253,8 @@ export default function LabTechDashboard() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sample Type</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Images</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lab Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Collected</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
@@ -322,14 +264,14 @@ export default function LabTechDashboard() {
                         <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                           <div className="flex justify-center items-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                            <span className="ml-2">Loading samples...</span>
+                            <span className="ml-2">Loading collections...</span>
                           </div>
                         </td>
                       </tr>
                     ) : filteredSamples.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                          No samples found
+                          No field collections found
                         </td>
                       </tr>
                     ) : (
@@ -350,13 +292,28 @@ export default function LabTechDashboard() {
                               {sample.sampleType}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <button
-                              onClick={() => handleViewImages(sample)}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              {sample.files.length} image(s)
-                            </button>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center space-x-2">
+                              {sample.files.length > 0 && (
+                                <div className="relative w-12 h-12 rounded overflow-hidden bg-gray-100">
+                                  <Image
+                                    src={`/api/field_collector/sample-collection/files/${sample.files[0].id}`}
+                                    alt="Sample preview"
+                                    fill
+                                    unoptimized
+                                    style={{ objectFit: 'cover' }}
+                                    className="cursor-pointer"
+                                    onClick={() => handleViewImages(sample)}
+                                  />
+                                </div>
+                              )}
+                              <button
+                                onClick={() => handleViewImages(sample)}
+                                className="text-blue-600 hover:text-blue-900 text-sm"
+                              >
+                                {sample.files.length} image(s)
+                              </button>
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(sample.labStatus || 'pending')}`}>
@@ -364,7 +321,7 @@ export default function LabTechDashboard() {
                             </span>
                             {sample.reviewedAt && (
                               <div className="text-xs text-gray-500 mt-1">
-                                {formatDate(sample.reviewedAt)}
+                                Reviewed: {formatDate(sample.reviewedAt)}
                               </div>
                             )}
                           </td>
@@ -373,27 +330,11 @@ export default function LabTechDashboard() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex space-x-2">
-                              {(!sample.labStatus || sample.labStatus === 'pending') && (
-                                <>
-                                  <button
-                                    onClick={() => handleReview(sample, 'approve')}
-                                    className="text-green-600 hover:text-green-900"
-                                  >
-                                    Approve
-                                  </button>
-                                  <button
-                                    onClick={() => handleReview(sample, 'reject')}
-                                    className="text-red-600 hover:text-red-900"
-                                  >
-                                    Reject
-                                  </button>
-                                </>
-                              )}
                               <button
                                 onClick={() => handleViewImages(sample)}
                                 className="text-blue-600 hover:text-blue-900"
                               >
-                                View
+                                View Details
                               </button>
                             </div>
                           </td>
@@ -407,58 +348,6 @@ export default function LabTechDashboard() {
           )}
         </div>
       </div>
-
-      {/* Review Modal */}
-      {showReviewModal && selectedSample && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-md w-full mx-4">
-            <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                {reviewAction === 'approve' ? 'Approve' : 'Reject'} Sample
-              </h3>
-              <div className="mb-4">
-                <p className="text-sm text-gray-600">
-                  Patient: <span className="font-medium">{selectedSample.patientName || selectedSample.patientId}</span>
-                </p>
-                <p className="text-sm text-gray-600">
-                  Sample Type: <span className="font-medium capitalize">{selectedSample.sampleType}</span>
-                </p>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Comments {reviewAction === 'reject' ? '(required)' : '(optional)'}
-                </label>
-                <textarea
-                  value={reviewComments}
-                  onChange={(e) => setReviewComments(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                  placeholder={reviewAction === 'approve' ? 'Add any additional notes...' : 'Please provide reason for rejection...'}
-                />
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => setShowReviewModal(false)}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={submitReview}
-                  disabled={submittingReview || (reviewAction === 'reject' && !reviewComments.trim())}
-                  className={`px-4 py-2 text-white rounded-lg disabled:opacity-50 ${
-                    reviewAction === 'approve'
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-red-600 hover:bg-red-700'
-                  }`}
-                >
-                  {submittingReview ? 'Submitting...' : reviewAction === 'approve' ? 'Approve' : 'Reject'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Image Modal */}
       {showImageModal && selectedSample && selectedSample.files.length > 0 && (
@@ -528,6 +417,119 @@ export default function LabTechDashboard() {
                     </svg>
                   </button>
                 </>
+              )}
+
+              {/* Review Interface - Only show for pending samples */}
+              {!isFullscreen && (!selectedSample.labStatus || selectedSample.labStatus === 'pending') && (
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-[500px]">
+                  {!showReviewForm ? (
+                    // Review Action Buttons
+                    <div className="flex space-x-4 bg-black bg-opacity-75 rounded-lg p-3">
+                      <button
+                        onClick={() => {
+                          setReviewAction('approve')
+                          setShowReviewForm(true)
+                          setReviewComments('')
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition-colors"
+                      >
+                        ✓ Approve Sample
+                      </button>
+                      <button
+                        onClick={() => {
+                          setReviewAction('reject')
+                          setShowReviewForm(true)
+                          setReviewComments('')
+                        }}
+                        className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-medium transition-colors"
+                      >
+                        ✗ Reject Sample
+                      </button>
+                    </div>
+                  ) : (
+                    // Review Form
+                    <div className="bg-white rounded-lg p-4 shadow-lg border">
+                      <div className="mb-3">
+                        <h4 className="text-lg font-medium text-gray-900 mb-2">
+                          {reviewAction === 'approve' ? '✓ Approve Sample' : '✗ Reject Sample'}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          Patient: <span className="font-medium">{selectedSample.patientName || selectedSample.patientId}</span>
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Sample Type: <span className="font-medium capitalize">{selectedSample.sampleType}</span>
+                        </p>
+                      </div>
+                      
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Comments {reviewAction === 'reject' ? '(required)' : '(optional)'}
+                        </label>
+                        <textarea
+                          value={reviewComments}
+                          onChange={(e) => setReviewComments(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          rows={3}
+                          placeholder={reviewAction === 'approve' ? 'Add any additional notes...' : 'Please provide reason for rejection...'}
+                        />
+                      </div>
+                      
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          onClick={() => {
+                            setShowReviewForm(false)
+                            setReviewComments('')
+                          }}
+                          className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={async () => {
+                            setSubmittingReview(true)
+                            try {
+                              const response = await fetch('/api/lab_tech/review-sample', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  sampleId: selectedSample._id,
+                                  status: reviewAction === 'approve' ? 'approved' : 'rejected',
+                                  comments: reviewComments.trim()
+                                }),
+                              })
+                              
+                              const data = await response.json()
+                              console.log('API Response:', { status: response.status, data })
+                              
+                              if (response.ok) {
+                                setShowReviewForm(false)
+                                setShowImageModal(false)
+                                setReviewComments('')
+                                await fetchSamples()
+                              } else {
+                                console.error('API Error:', data)
+                                setError(`Failed to submit review: ${data.error || 'Unknown error'}`)
+                              }
+                            } catch (err) {
+                              console.error('Network Error:', err)
+                              setError('Network error - please check your connection')
+                            } finally {
+                              setSubmittingReview(false)
+                            }
+                          }}
+                          disabled={submittingReview || (reviewAction === 'reject' && !reviewComments.trim())}
+                          className={`px-4 py-2 text-white rounded-lg disabled:opacity-50 text-sm ${
+                            reviewAction === 'approve'
+                              ? 'bg-green-600 hover:bg-green-700'
+                              : 'bg-red-600 hover:bg-red-700'
+                          }`}
+                        >
+                          {submittingReview ? 'Submitting...' : (reviewAction === 'approve' ? 'Approve' : 'Reject')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 

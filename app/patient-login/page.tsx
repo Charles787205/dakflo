@@ -25,7 +25,17 @@ export default function PatientLoginPage() {
     setLoading(false)
 
     if (res?.error) {
-      setError(res.error)
+      console.log('Patient login error received:', res.error)
+      // Handle specific error codes from our auth provider
+      if (res.error === 'PENDING_APPROVAL') {
+        setError('Account pending approval. Please contact an administrator.')
+      } else if (res.error === 'ACCOUNT_INACTIVE') {
+        setError('Account is inactive. Please contact an administrator.')
+      } else if (res.error === 'CredentialsSignin') {
+        setError('Invalid username or password.')
+      } else {
+        setError(res.error)
+      }
       return
     }
 

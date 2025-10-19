@@ -1,7 +1,18 @@
+// Load environment variables from .env when running the script directly
+try {
+  require('dotenv').config()
+} catch (err) {
+  // dotenv not installed or failed to load — environment variables may already be set
+}
+
 const { MongoClient } = require('mongodb')
 const bcrypt = require('bcryptjs')
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/dakflo_db'
+const MONGO_URI = process.env.MONGO_URI
+if (!MONGO_URI) {
+  console.error('\nERROR: MONGO_URI is not set.\nPlease set MONGO_URI in your environment or in a .env file and try again.\n')
+  process.exit(1)
+}
 
 async function seedUsers() {
   const client = new MongoClient(MONGO_URI)
@@ -49,6 +60,15 @@ async function seedUsers() {
         firstName: 'External',
         lastName: 'Expert',
         email: 'expert@dakflo.com'
+      },
+      {
+        username: 'pending_user',
+        password: 'password123',
+        role: 'field_collector',
+        firstName: 'Pending',
+        lastName: 'User',
+        email: 'pending@dakflo.com',
+        isApproved: false // This user is pending approval
       }
     ]
 
@@ -73,7 +93,7 @@ async function seedUsers() {
         createdAt: new Date(),
         updatedAt: new Date(),
         isActive: true,
-        isApproved: true // Set existing users as approved
+        isApproved: userData.isApproved !== undefined ? userData.isApproved : true // Use the specified value or default to true
       }
 
       const result = await users.insertOne(newUser)

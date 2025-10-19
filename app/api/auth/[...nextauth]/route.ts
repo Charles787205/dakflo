@@ -18,6 +18,7 @@ export const authOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
+          console.log('Missing credentials')
           return null
         }
 
@@ -28,6 +29,7 @@ export const authOptions = {
           const user = await users.findOne({ username: credentials.username })
 
           if (!user) {
+            console.log('User not found:', credentials.username)
             return null
           }
 
@@ -37,12 +39,20 @@ export const authOptions = {
           )
 
           if (!isPasswordValid) {
+            console.log('Invalid password for user:', credentials.username)
             return null
           }
 
-          // Check if user is approved and active
-          if (!user.isApproved || !user.isActive) {
-            throw new Error('Account pending approval or inactive. Please contact an administrator.')
+          // Check if user is approved and active - store error info for frontend
+          if (!user.isApproved) {
+            console.log('User not approved:', credentials.username)
+            // Use a special error code that the frontend can detect
+            throw new Error('PENDING_APPROVAL')
+          }
+
+          if (!user.isActive) {
+            console.log('User inactive:', credentials.username)
+            throw new Error('ACCOUNT_INACTIVE')
           }
 
           // Build a display name from the name parts if available

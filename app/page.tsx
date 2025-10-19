@@ -36,7 +36,17 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setError('Invalid username or password')
+        console.log('Login error received:', result.error)
+        // Handle specific error codes from our auth provider
+        if (result.error === 'PENDING_APPROVAL') {
+          setError('Account pending approval. Please contact an administrator.')
+        } else if (result.error === 'ACCOUNT_INACTIVE') {
+          setError('Account is inactive. Please contact an administrator.')
+        } else if (result.error === 'CredentialsSignin') {
+          setError('Invalid username or password.')
+        } else {
+          setError(result.error)
+        }
       } else if (result?.ok) {
         // Get the session to determine user role
         const session = await getSession()

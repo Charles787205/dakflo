@@ -3,10 +3,24 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 
 const SidePanel = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
+
+  const handleLogout = async () => {
+    try {
+      await signOut({ 
+        callbackUrl: '/',
+        redirect: true 
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback to manual redirect if signOut fails
+      window.location.href = '/';
+    }
+  };
 
   const menuItems = [
     {
@@ -54,34 +68,7 @@ const SidePanel = () => {
         </svg>
       )
     },
-    {
-      title: 'Location Tracking',
-      href: '/field_collector/location',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      )
-    },
-    {
-      title: 'Sample History',
-      href: '/field_collector/history',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      )
-    },
-    {
-      title: 'Reports',
-      href: '/field_collector/reports',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-      )
-    }
+    
   ];
 
   const isActiveLink = (href: string) => {
@@ -157,7 +144,7 @@ const SidePanel = () => {
         {!isCollapsed && (
           <div className="mt-3 space-y-1">
             <Link
-              href="/field_collector/profile"
+              href="/profile"
               className="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,7 +153,7 @@ const SidePanel = () => {
               <span>Profile</span>
             </Link>
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={handleLogout}
               className="flex items-center space-x-2 p-2 w-full text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

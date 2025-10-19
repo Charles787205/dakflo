@@ -10,12 +10,24 @@ export interface Patient {
   gender?: 'male' | 'female' | 'other' | null;
   age?: number | null; // calculated from dateOfBirth or manually entered
   civilStatus?: 'single' | 'married' | 'divorced' | 'widowed' | 'separated' | null;
-  phoneNumber?: string | null; // renamed from phone for consistency
+  phoneNumber?: string | null; // primary phone number
+  alternatePhone?: string | null; // alternate phone number
   email?: string | null;
   address?: string | null;
   barangay?: string | null;
   municipality?: string | null;
   province?: string | null;
+  // Emergency contact information
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  emergencyContactRelation?: string | null;
+  // Medical information
+  medicalHistory?: string | null;
+  allergies?: string | null;
+  currentMedications?: string | null;
+  symptoms?: string | null;
+  referringPhysician?: string | null;
+  notes?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

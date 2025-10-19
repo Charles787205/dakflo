@@ -8,18 +8,23 @@ export async function POST(request: NextRequest) {
     // In a real implementation, you would properly validate the session
     
     const { sampleId, status, comments } = await request.json()
+    
+    console.log('Review API called with:', { sampleId, status, comments })
 
     if (!sampleId || !status || !['approved', 'rejected'].includes(status)) {
+      console.log('Invalid request data:', { sampleId, status, comments })
       return NextResponse.json({ error: 'Invalid request data' }, { status: 400 })
     }
 
     if (status === 'rejected' && !comments?.trim()) {
+      console.log('Missing comments for rejection')
       return NextResponse.json({ error: 'Comments are required for rejection' }, { status: 400 })
     }
 
     const db = await getDb()
+    console.log('Database connected successfully')
     
-    const result = await db.collection('sampleCollections').updateOne(
+    const result = await db.collection('sample_collections').updateOne(
       { _id: new ObjectId(sampleId) },
       {
         $set: {
@@ -31,10 +36,14 @@ export async function POST(request: NextRequest) {
       }
     )
 
+    console.log('Update result:', result)
+
     if (result.matchedCount === 0) {
+      console.log('Sample not found with ID:', sampleId)
       return NextResponse.json({ error: 'Sample not found' }, { status: 404 })
     }
 
+    console.log('Review submitted successfully')
     return NextResponse.json({ 
       success: true,
       message: `Sample ${status} successfully`,
