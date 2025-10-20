@@ -3,17 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { getDb } from '@/lib/mongodb'
 import bcrypt from 'bcryptjs'
-
-interface ExtendedSession {
-  user: {
-    username: string
-    role: string
-    id: string
-    name?: string | null
-    email?: string | null
-    image?: string | null
-  }
-}
+import type { ExtendedSession } from '@/types/session'
 
 export async function POST(request: NextRequest) {
   try {

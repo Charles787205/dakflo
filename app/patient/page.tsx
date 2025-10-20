@@ -4,6 +4,15 @@ import React, { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
+// Type for our extended session user
+interface SessionUser {
+  id?: string
+  username?: string
+  role?: string
+  name?: string
+  email?: string
+}
+
 interface SampleResult {
   _id: string
   sampleType: string
@@ -27,7 +36,7 @@ export default function PatientDashboard() {
   useEffect(() => {
     if (status === 'loading') return
     
-    if (status === 'unauthenticated' || session?.user?.role !== 'patient') {
+    if (status === 'unauthenticated' || (session?.user as SessionUser)?.role !== 'patient') {
       router.push('/patient-login')
       return
     }
@@ -115,7 +124,7 @@ export default function PatientDashboard() {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">My Lab Results</h1>
-              <p className="text-gray-600">Welcome, {session?.user?.name || session?.user?.username}</p>
+              <p className="text-gray-600">Welcome, {(session?.user as SessionUser)?.name || (session?.user as SessionUser)?.username}</p>
             </div>
             <div className="space-x-3">
               <button

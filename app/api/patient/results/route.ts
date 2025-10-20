@@ -3,10 +3,11 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { getDb } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
+import type { ExtendedSession } from '@/types/session'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions) as ExtendedSession | null
     
     if (!session || !session.user || session.user.role !== 'patient') {
       return NextResponse.json({ error: 'Unauthorized - Patient access required' }, { status: 401 })

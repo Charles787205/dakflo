@@ -4,8 +4,6 @@ import { MongoDBAdapter } from '@auth/mongodb-adapter'
 import bcrypt from 'bcryptjs'
 import { getClient, getDb } from '@/lib/mongodb'
 import type { User } from '@/models/user'
-import type { JWT } from 'next-auth/jwt'
-import type { Session, User as NextAuthUser } from 'next-auth'
 
 export const authOptions = {
   adapter: MongoDBAdapter(getClient()),
@@ -78,23 +76,20 @@ export const authOptions = {
     strategy: 'jwt' as const
   },
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: NextAuthUser | undefined }) {
+    // @ts-expect-error NextAuth callback types are inconsistent
+    jwt: async ({ token, user }) => {
       if (user) {
-        // merge role/username into token
-        Object.assign(token as unknown as Record<string, unknown>, {
-          role: user.role,
-          username: user.username
-        })
+        token.role = user.role
+        token.username = user.username
       }
       return token
     },
-    async session({ session, token }: { session: Session; token: JWT }) {
-      if (token) {
-        const t = token as unknown as { sub?: string; role?: string; username?: string }
-        const sUser = session.user as unknown as { id?: string; role?: string; username?: string }
-        if (t.sub) sUser.id = String(t.sub)
-        if (t.role) sUser.role = t.role
-        if (t.username) sUser.username = t.username
+    // @ts-expect-error NextAuth callback types are inconsistent
+    session: async ({ session, token }) => {
+      if (token && session.user) {
+        session.user.id = token.sub || ''
+        session.user.role = token.role || ''
+        session.user.username = token.username || ''
       }
       return session
     }
@@ -105,6 +100,6 @@ export const authOptions = {
   }
 }
 
-const handler = NextAuth(authOptions as unknown as never)
+const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }

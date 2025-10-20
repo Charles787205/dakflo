@@ -2,20 +2,11 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { getDb } from '@/lib/mongodb'
-
-interface ExtendedSession {
-  user: {
-    username: string
-    role: string
-    id: string
-    name?: string
-    email?: string
-  }
-}
+import type { ExtendedSession } from '@/types/session'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions as never) as ExtendedSession | null
+    const session = await getServerSession(authOptions) as ExtendedSession | null
     
     if (!session || !session.user || !session.user.username) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
