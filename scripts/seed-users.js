@@ -8,7 +8,7 @@ try {
 const { MongoClient } = require('mongodb')
 const bcrypt = require('bcryptjs')
 
-const MONGO_URI = process.env.MONGO_URI
+const MONGO_URI = "mongodb://jcanedo527294:ffgfqcb9AdQ82HW7@ac-nnanmlz-shard-00-00.iiloql1.mongodb.net:27017,ac-nnanmlz-shard-00-01.iiloql1.mongodb.net:27017,ac-nnanmlz-shard-00-02.iiloql1.mongodb.net:27017/dakflodb?replicaSet=atlas-7ew5fv-shard-0&ssl=true&authSource=admin"
 if (!MONGO_URI) {
   console.error('\nERROR: MONGO_URI is not set.\nPlease set MONGO_URI in your environment or in a .env file and try again.\n')
   process.exit(1)
